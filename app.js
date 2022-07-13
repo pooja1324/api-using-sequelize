@@ -45,7 +45,7 @@ app.get("/users/:id", async (req, res) => {
     const { id } = req.params;
     const user = await Users.findOne({
       where: { uuid: id },
-      include: ["aadhar", "addresses"],
+      include: ["aadhar", "addresses", "roles"],
     });
     return res.json(user);
   } catch (error) {
@@ -255,21 +255,24 @@ app.get("/users/:id/roles", async (req, res) => {
       where: { uuid: id },
     });
     if (user) {
-      const roles = await UserRoles.findAll({
-        where: {
-          userId: user.id,
-        },
-        include: ["roles"],
-      });
+      
+      const roles = await user.getRoles()
+      
+      // await UserRoles.findAll({
+      //   where: {
+      //     userId: user.id,
+      //   },
+      //   include: ["roles"],
+      // });
 
-      const userRoles = await Roles.findAll({
-        where: {
-          id: roles.map((role) => {
-            return role.roleId;
-          }),
-        },
-      });
-      return res.json(userRoles);
+      // const userRoles = await Roles.findAll({
+      //   where: {
+      //     id: roles.map((role) => {
+      //       return role.roleId;
+      //     }),
+      //   },
+      // });
+      return res.json(roles);
     } else {
       return res.status(400).json({ error: "User does not exist" });
     }
@@ -400,7 +403,6 @@ app.post("/images/:id/comments", async (req, res) => {
     if (image) {
       await image.createComment({
         text,
-        'commentableType':'image'
       });
       res.json({message:'Comment Added'})
     } else {
@@ -423,7 +425,6 @@ app.post("/videos/:id/comments", async (req, res) => {
     if (image) {
       await image.createComment({
         text,
-        'commentableType':'video'
       });
       res.json({message:'Comment Added'})
     } else {
